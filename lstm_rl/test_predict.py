@@ -5,7 +5,7 @@ import torch.nn as nn
 from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import DataLoader, TensorDataset
 import matplotlib.pyplot as plt
-from predict import train_model, evaluate_model, calculate_metrics, create_sequences,BiLSTMModel
+from lstm_rl.predict import train_model, evaluate_model, calculate_metrics, create_sequences,BiLSTMModel
 
 SEED = 42
 np.random.seed(SEED)
@@ -20,7 +20,7 @@ data = data.sort_values(by="Date")
 
 # حذف ستون‌های غیرعددی و نرمال‌سازی داده‌ها
 numeric_data = data.drop(columns=["Date"])
-numeric_data = numeric_data[['Close'] + [col for col in numeric_data.columns if col != 'Close']]
+# numeric_data = numeric_data[['Close'] + [col for col in numeric_data.columns if col != 'Close']]
 
 print("--------------------")
 print(f"numeric_data={numeric_data}")
@@ -28,6 +28,8 @@ scaler = MinMaxScaler()
 normalized_data = scaler.fit_transform(numeric_data)
 
 data[numeric_data.columns] = normalized_data
+print("-------------------\n")
+print(f"numeric_data.columns={numeric_data.columns}")
 print("--------------------")
 print(f"data={data}")
 
@@ -41,6 +43,11 @@ sequence_length = 30
 X_train, y_train = create_sequences(train_data, sequence_length)
 X_val, y_val = create_sequences(val_data, sequence_length)
 X_test, y_test = create_sequences(test_data, sequence_length)
+
+print("--------------------")
+print(f"X_train={X_train}")
+print("--------------------")
+print(f"Y_train={y_train}")
 
 # آماده‌سازی داده‌ها برای PyTorch
 train_dataset = TensorDataset(torch.tensor(X_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.float32))
@@ -57,8 +64,12 @@ network = BiLSTMModel(input_dim=X_train.shape[2], hidden_dim=224, num_layers=1, 
 learning_rate = 0.00191084309168345
 
 print(f"Training {name}...")
-trained_model = train_model(network, train_loader, val_loader, num_epochs=20, learning_rate=learning_rate)
+trained_model = train_model(network, train_loader, num_epochs=20, learning_rate=learning_rate)
 predictions, targets = evaluate_model(trained_model, test_loader)
+
+print("-----------------------------\n")
+print(f"{name} Predictions: {predictions}")
+print("-----------------------------\n")
 metrics = calculate_metrics(predictions, targets)
 results[name] = metrics
 print(f"{name} Metrics: {metrics}")

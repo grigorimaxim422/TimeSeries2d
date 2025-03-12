@@ -82,7 +82,7 @@ class LSTMGRUModel(nn.Module):
 
 
 # 3. تابع آموزش و ارزیابی مدل‌ها
-def train_model(model, train_loader, val_loader, num_epochs, learning_rate):
+def train_model(model, train_loader, num_epochs, learning_rate):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     criterion = nn.MSELoss()
@@ -101,6 +101,18 @@ def train_model(model, train_loader, val_loader, num_epochs, learning_rate):
 
     return model
 
+def predict_future(model, last_sequence, forecast_horizon=288):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+    with torch.no_grad():
+        input_seq = torch.tensor(last_sequence, dtype=torch.float32).unsqueeze(0).unsqueeze(-1)
+        input_seq = input_seq.to(device)
+        prediction = model(input_seq).squeeze(-1)
+                
+    return np.array(predictions)
+        
+        
 def evaluate_model(model, loader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -142,3 +154,4 @@ def create_sequences(data, sequence_length=30):
         sequences.append(seq)
         targets.append(target)
     return np.array(sequences), np.array(targets)
+
