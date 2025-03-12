@@ -38,16 +38,25 @@ train_data = data[(data["Date"].dt.year >= 2017) & (data["Date"].dt.year <= 2022
 val_data = data[data["Date"].dt.year == 2023].drop(columns=["Date"]).values
 test_data = data[data["Date"].dt.year == 2024].drop(columns=["Date"]).values
 
-
+print("--------------------")
+print(f"train_data shape={train_data.shape}")
 sequence_length = 30
 X_train, y_train = create_sequences(train_data, sequence_length)
 X_val, y_val = create_sequences(val_data, sequence_length)
 X_test, y_test = create_sequences(test_data, sequence_length)
 
 print("--------------------")
-print(f"X_train={X_train}")
+# print(f"X_train={X_train}")
+# print(X_train)
+print("X_train=")
+print(len(X_train))
+print(X_train.shape)
 print("--------------------")
-print(f"Y_train={y_train}")
+# print(y_train)
+print(f"Y_train=")
+print(len(y_train))
+print(y_train.shape)
+# print(y_train)
 
 # آماده‌سازی داده‌ها برای PyTorch
 train_dataset = TensorDataset(torch.tensor(X_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.float32))
@@ -67,6 +76,13 @@ print(f"Training {name}...")
 trained_model = train_model(network, train_loader, num_epochs=20, learning_rate=learning_rate)
 predictions, targets = evaluate_model(trained_model, test_loader)
 
+print("----------------")
+print("test_loader.shape=")
+# print(test_loader.shape)
+for xx,yy in test_loader:
+    print(f"xx={xx}")
+    print(f"batch shape={xx.shape}")
+    
 print("-----------------------------\n")
 print(f"{name} Predictions: {predictions}")
 print("-----------------------------\n")

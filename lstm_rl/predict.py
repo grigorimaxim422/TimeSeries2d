@@ -106,11 +106,23 @@ def predict_future(model, last_sequence, forecast_horizon=288):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
+    
+    # last_sequence = np.array(last_sequence)
+    cv, _ = create_sequences(last_sequence, 288)
+    test_dataset = TensorDataset(torch.tensor(cv, dtype=torch.float32),torch.tensor(cv, dtype=torch.float32))
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    
+    # input_seq = torch.tensor(last_sequence, dtype=torch.float32)
+    # print("input_seq.shape=")
+    # print(input_seq.shape)
+    # last_dataset=TensorDataset(to)    
+    predictions = []    
+    
     with torch.no_grad():
-        input_seq = torch.tensor(last_sequence, dtype=torch.float32).unsqueeze(0).unsqueeze(-1)
-        input_seq = input_seq.to(device)
-        prediction = model(input_seq).squeeze(-1)
-                
+        for input_seq,_ in test_loader:        
+            input_seq = input_seq.to(device)
+            prediction = model(input_seq).squeeze()
+            predictions.extend(prediction.cpu().numpy())                
     return np.array(predictions)
         
         

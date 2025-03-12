@@ -1,5 +1,5 @@
 import requests
-
+import pytz
 from synth.utils.helpers import from_iso_to_unix_time
 from datetime import datetime, timezone
 import pandas as pd
@@ -14,7 +14,36 @@ class PriceDataProvider:
     one_week_seconds = one_day_seconds * 7
 
     def __init__(self, token):
-        self.token = self._get_token_mapping(token)
+        self.token = self._get_token_mapping(token)    
+    
+    def fetch_afterward(self, start_time, step=300):
+        start_time = start_time
+        end_time = start_time + self.one_day_seconds
+        params = {
+            "symbol": self.token,
+            "resolution": step//60,
+            "from": start_time,
+            "to": end_time,
+        }
+        response = requests.get(self.BASE_URL, params=params)
+        response.raise_for_status()        
+
+        data = response.json()
+        price_data = data['c']
+        price_data = price_data[1:]
+        df = pd.DataFrame(data)
+        df = df.drop(columns=['s', 'h','l','o','v'])
+        df = df.iloc[1:]
+        df.reset_index(drop=True, inplace=True)
+        df = df.rename(columns={
+            't': 'timestamp',                        
+            'c': 'price',            
+        })        
+        
+        df ['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+        return price_data, df 
+    
+        
     def fetch_after(self, start_time:str, step=300):
         start_time = from_iso_to_unix_time(start_time)
         end_time = start_time + self.one_day_seconds
@@ -28,12 +57,27 @@ class PriceDataProvider:
         response.raise_for_status()        
 
         data = response.json()
-        transformed_data = []
-        for c in zip(data["c"]):
-            transformed_data.append(c)
-        
+        transformed_data = data['c']
+        transformed_data = transformed_data[1:]
         return transformed_data                    
-        
+    
+    def fetch_last_day(self, time_point:str, step=300):
+        end_time = from_iso_to_unix_time(time_point)
+        start_time = end_time - self.one_day_seconds
+        params = {
+            "symbol": self.token,
+            "resolution": step//60,
+            "from": start_time,
+            "to": end_time,
+        }
+
+        response = requests.get(self.BASE_URL, params=params)
+        response.raise_for_status()
+
+        data = response.json()        
+        transformed_data = self._transform_to_csv(data, start_time, step)
+        return transformed_data
+    
     def fetch_csv(self, time_point:str, step=300):
         end_time = from_iso_to_unix_time(time_point)
         start_time = end_time - self.two_day_seconds
@@ -47,9 +91,9 @@ class PriceDataProvider:
         response = requests.get(self.BASE_URL, params=params)
         response.raise_for_status()
 
-        data = response.json()
+        data = response.json()        
         transformed_data = self._transform_to_csv(data, start_time, step)
-        return transformed_data
+        return transformed_data, end_time
 
     def fetch_data(self, time_point: str):
         """
@@ -72,7 +116,7 @@ class PriceDataProvider:
         response = requests.get(self.BASE_URL, params=params)
         response.raise_for_status()
 
-        data = response.json()
+        data = response.json()        
         transformed_data = self._transform_data(data, start_time)
 
         return transformed_data
@@ -80,25 +124,24 @@ class PriceDataProvider:
     @staticmethod
     def _transform_to_csv(data, start_time,step):
         df = pd.DataFrame(data)
+        df = df.iloc[1:].reset_index(drop=True)
         df = df.rename(columns={
-            't': 'time',                        
+            't': 'timestamp',                        
             'c': 'Close',
             'h': 'High',
             'l': 'Low',
             'o': 'Open',
             'v': 'volume'
         })
-        df = df.drop(columns=["s"])
-        # df = df.assign(
-        #     Open2=df['Open'],
-        #     Close2=df['Close'],
-        #     Low2=df['Low'],
-        #     High2=df['High']
-        # )
-        # Select only the relevant columns        
+        df = df.drop(columns=["s"])       
         df.to_csv('tmp.csv', index=False)
         newdata = pd.read_csv('tmp.csv')
-        # newdata["time"] = pd.to_datetime(newdata["time"])
+        # newdata['timestamp'] = pd.to_datetime(newdata['timestamp'])
+        # newdata['timestamp'] = newdata['timestamp'].dt.strftime()
+        newdata['timestamp'] = pd.to_datetime(newdata['timestamp'], unit='s')
+        # newdata = newdata.sort_index()
+        # newdata = newdata.sort_values(by="timestamp")
+        newdata.set_index('timestamp', inplace=True)
         return newdata
     
     @staticmethod
