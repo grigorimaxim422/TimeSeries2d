@@ -92,13 +92,14 @@ def train_model(model, train_loader, num_epochs, learning_rate):
         print(f"train epoch={epoch}...")
         model.train()
         for X_batch, y_batch in train_loader:
+            # print("single batch... ")
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-            optimizer.zero_grad()
-            predictions = model(X_batch).squeeze()
+            optimizer.zero_grad()            
+            predictions = model(X_batch).squeeze()                        
             loss = criterion(predictions, y_batch)
             loss.backward()
             optimizer.step()
-
+            
     return model
 
 def predict_future(model, last_sequence, forecast_horizon=288):

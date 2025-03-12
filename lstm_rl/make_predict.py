@@ -18,6 +18,7 @@ def update_model():
     price_data_provider = PriceDataProvider("BTC")
     start_time = "2025-02-26T00:00:00"
     data = price_data_provider.fetch_csv(start_time)
+    data = data.drop(columns=["volume"])
     print("=-======================")
     print(f"normalized_data={data}")
     numeric_data = data.drop(columns=["time"])
@@ -36,7 +37,14 @@ def update_model():
     print(f"train_data={train_data}")
     sequence_length = 288 #means one day
     X_train, y_train = create_sequences(train_data, sequence_length)
+    
+    print("--------------------")
+    print(f"X_train={X_train}")
+    print("--------------------")
+    print(f"Y_train={y_train}")
+
     train_dataset = TensorDataset(torch.tensor(X_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.float32))
+    
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     results = {}
     network = BiLSTMModel(input_dim=X_train.shape[2],hidden_dim=2224, num_layers=1, dropout=0.14063490978424847)
@@ -52,6 +60,8 @@ def update_model():
     print("-------==================================")
     print(f"predictions={predictions}")
     
+    
+reset_before()    
 update_model()
     # future_timestamps = pd.date_range(df.index[-1], )
     

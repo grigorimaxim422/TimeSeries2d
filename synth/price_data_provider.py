@@ -10,6 +10,7 @@ class PriceDataProvider:
     TOKEN_MAP = {"BTC": "Crypto.BTC/USD", "ETH": "Crypto.ETH/USD"}
 
     one_day_seconds = 24 * 60 * 60
+    two_day_seconds = 48 * 60 * 60
     one_week_seconds = one_day_seconds * 7
 
     def __init__(self, token):
@@ -35,7 +36,7 @@ class PriceDataProvider:
         
     def fetch_csv(self, time_point:str, step=300):
         end_time = from_iso_to_unix_time(time_point)
-        start_time = end_time - self.one_week_seconds
+        start_time = end_time - self.two_day_seconds
         params = {
             "symbol": self.token,
             "resolution": step//60,
@@ -88,6 +89,12 @@ class PriceDataProvider:
             'v': 'volume'
         })
         df = df.drop(columns=["s"])
+        # df = df.assign(
+        #     Open2=df['Open'],
+        #     Close2=df['Close'],
+        #     Low2=df['Low'],
+        #     High2=df['High']
+        # )
         # Select only the relevant columns        
         df.to_csv('tmp.csv', index=False)
         newdata = pd.read_csv('tmp.csv')
