@@ -1,0 +1,1 @@
+The dataset Book1 contains data for Bitcoin, while Book2 and Book3 contain data for other cryptocurrencies, including Ripple (XRP) and Dogecoin (DOGE), respectively. These datasets are used for training and evaluating the models proposed in the study.
