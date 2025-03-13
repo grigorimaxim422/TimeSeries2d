@@ -59,9 +59,10 @@ def predict_future(model, last_sequence, forecast_horizon, scaler):
         input_seq = input_seq.to(device)
         prediction = model(input_seq).squeeze(-1)
         prediction = prediction.cpu().numpy()
+        # predictions.append(prediction)
         predictions.extend(prediction)                
     # return np.array(predictions)
-    return scaler.inverse_transform(prediction.reshape(-1, 1)).flatten()
+    return scaler.inverse_transform(prediction.reshape(-1, 1)).flatten(),np.array(predictions).reshape(-1)
 
 
 from sklearn.metrics import mean_absolute_error, r2_score

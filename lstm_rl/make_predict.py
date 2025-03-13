@@ -17,11 +17,11 @@ def reset_before():
 def update_model():
     price_data_provider = PriceDataProvider("BTC")
     start_time = "2025-02-26T00:00:00"
-    data = price_data_provider.fetch_csv(start_time)
-    data = data.drop(columns=["volume"])
+    data,_ = price_data_provider.fetch_csv(start_time)
+    # data = data.drop(columns=["volume"])
     print("=-======================")
     print(f"normalized_data={data}")
-    numeric_data = data.drop(columns=["timestamp"])
+    numeric_data = data#.drop(columns=["timestamp"])
     numeric_data = numeric_data[['Close'] + [col for col in numeric_data.columns if col != 'Close']]
 
     scaler = MinMaxScaler()
@@ -32,8 +32,10 @@ def update_model():
     print(f"numeric_data.columns={numeric_data.columns}")
     print("--------------------")
     print(f"data={data}")
-    train_data = data.drop(columns=["timestamp"]).values
-    test_data = data[-288:].drop(columns=["timestamp"]).values
+    train_data = data.values
+    test_data = data[-288:].values
+    # train_data = data.drop(columns=["timestamp"]).values
+    # test_data = data[-288:].drop(columns=["timestamp"]).values
     
     # print(f"train_data={train_data}")
     print(f"train_data shape={train_data.shape}")

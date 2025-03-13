@@ -108,22 +108,26 @@ def predict_future(model, last_sequence, forecast_horizon=288):
     model.eval()
     
     # last_sequence = np.array(last_sequence)
-    cv, _ = create_sequences(last_sequence, 288)
-    test_dataset = TensorDataset(torch.tensor(cv, dtype=torch.float32),torch.tensor(cv, dtype=torch.float32))
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    # cv, _ = create_sequences(last_sequence, 288)
+    # test_dataset = TensorDataset(torch.tensor(cv, dtype=torch.float32),torch.tensor(cv, dtype=torch.float32))
+    # test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
     
-    # input_seq = torch.tensor(last_sequence, dtype=torch.float32)
-    # print("input_seq.shape=")
-    # print(input_seq.shape)
-    # last_dataset=TensorDataset(to)    
-    predictions = []    
+    # # input_seq = torch.tensor(last_sequence, dtype=torch.float32)
+    # # print("input_seq.shape=")
+    # # print(input_seq.shape)
+    # # last_dataset=TensorDataset(to)    
+    # predictions = []    
     
-    with torch.no_grad():
-        for input_seq,_ in test_loader:        
-            input_seq = input_seq.to(device)
-            prediction = model(input_seq).squeeze()
-            predictions.extend(prediction.cpu().numpy())                
-    return np.array(predictions)
+    # with torch.no_grad():
+    #     for input_seq,_ in test_loader:        
+    #         input_seq = input_seq.to(device)
+    #         prediction = model(input_seq).squeeze()
+    #         predictions.extend(prediction.cpu().numpy())                
+    # return np.array(predictions)
+    # input_seq = np.array(last_sequence)
+    # print(f"input_seq={input_seq.shape}")
+    # with torch.no_grad():
+    
         
         
 def evaluate_model(model, loader):
@@ -135,6 +139,7 @@ def evaluate_model(model, loader):
     with torch.no_grad():
         for X_batch, y_batch in loader:
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+            print(f"eval: X_batch.shape={X_batch.shape}")
             preds = model(X_batch).squeeze()
             predictions.extend(preds.cpu().numpy())
             targets.extend(y_batch.cpu().numpy())

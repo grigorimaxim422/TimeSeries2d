@@ -30,7 +30,7 @@ class PriceDataProvider:
 
         data = response.json()
         price_data = data['c']
-        price_data = price_data[1:]
+        price_data = price_data[1:]        
         df = pd.DataFrame(data)
         df = df.drop(columns=['s', 'h','l','o','v'])
         df = df.iloc[1:]

@@ -7,7 +7,8 @@ from torch.utils.data import DataLoader, TensorDataset
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Bidirectional, Dense, Dropout
 from synth.price_data_provider import PriceDataProvider
-from lstm2.model import LSTMModel,train_model, predict_future, calculate_metrics
+from lstm2.model import LSTMModel,BiLSTMModel
+from lstm2.model import train_model, predict_future, calculate_metrics
 def create_sequences(data, sequence_length, future_steps):
     X, y = [], []
     for i in range(len(data) - sequence_length - future_steps):
@@ -53,13 +54,14 @@ def update_model():
         torch.tensor(y, dtype=torch.float32).unsqueeze(-1))
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     
-    # network = BiLSTMModel(input_dim=X_train.shape[2], hidden_dim=224, num_layers=1, dropout=0.14063490978424847)
-    network = LSTMModel(1, 64, 2, 288, 0.14063490978424847)
+    network = BiLSTMModel(input_dim=1, hidden_dim=224, num_layers=1, output_size=288, dropout=0.14063490978424847)
+    # network = LSTMModel(1, 64, 2, 288, 0.14063490978424847)
     learning_rate = 0.00191084309168345
+    
     model = train_model(network, train_loader, 20, learning_rate)
     
     last_sequence = prices[-sequence_length:]
-    predicted_prices = predict_future(model, last_sequence, forecast_horizon, scaler)
+    predicted_prices, rr = predict_future(model, last_sequence, forecast_horizon, scaler)
     
             
     future_timestamps = pd.date_range(data.index[-1], periods=forecast_horizon+1, freq='5T')[1:]
@@ -68,8 +70,26 @@ def update_model():
     
     real_prices, trans = price_data_provider.fetch_afterward(end_time,300)
     print(trans)
-
-    metrics = calculate_metrics(predicted_prices, real_prices)
+    print("---------------------------")
+    rr = rr.reshape(-1, 1)
+    print(rr)    
+    print(f"rr.shape={rr.shape}")
+    
+    rr2 = np.array(real_prices).reshape(-1).reshape(-1,1)
+    
+    rr2 = scaler.fit_transform(rr2)
+    print("---------------------------")
+    print(rr2)        
+    print(f"rr2.shape={rr2.shape}")
+    # print(f"rr2.shape={rr2.shape}")
+    # rr2 = scaler.fit_transform(rr2)
+    # print(f"rr2.shape={rr2.shape}")
+    # print(f"predicted_prices=.shape={predicted_prices.shape}")
+    # print(f"real_prices.shape={real_prices.shape}")
+    
+    #metrics = calculate_metrics(predicted_prices, real_prices)
+   
+    metrics = calculate_metrics(rr, rr2)
     print(f"metrics={metrics}")
     # print({'timestamp': future_timestamps, 'predicted_price': predicted_prices})
     

@@ -76,16 +76,18 @@ print(f"Training {name}...")
 trained_model = train_model(network, train_loader, num_epochs=20, learning_rate=learning_rate)
 predictions, targets = evaluate_model(trained_model, test_loader)
 
-print("----------------")
-print("test_loader.shape=")
+# print("----------------")
+# print("test_loader.shape=")
 # print(test_loader.shape)
-for xx,yy in test_loader:
-    print(f"xx={xx}")
-    print(f"batch shape={xx.shape}")
+# for xx,yy in test_loader:
+#     print(f"xx={xx}")
+#     print(f"batch shape={xx.shape}")
     
 print("-----------------------------\n")
-print(f"{name} Predictions: {predictions}")
+print(f"{name} Predictions: {predictions.shape}, targets: {targets.shape}")
+
 print("-----------------------------\n")
+
 metrics = calculate_metrics(predictions, targets)
 results[name] = metrics
 print(f"{name} Metrics: {metrics}")
